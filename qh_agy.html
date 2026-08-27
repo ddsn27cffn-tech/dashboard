@@ -3,30 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🧠 QH AGY</title>
+<title>QH AGY</title>
 <style>
-  * { box-sizing:border-box; }
-  body { background:#0a0e14; color:#e6edf3; font-family:'Segoe UI',sans-serif; margin:0; padding:16px; }
-  .wrap { max-width:1100px; margin:auto; }
-  h1 { font-size:22px; } h1 span { color:#d29922; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; }
-  .card { background:#131a24; border:1px solid #263041; border-radius:12px; padding:14px; }
-  .card h2 { margin:0 0 10px; font-size:13px; color:#8b949e; text-transform:uppercase; letter-spacing:1px; }
-  table { width:100%; border-collapse:collapse; font-size:14px; }
-  td { padding:5px 4px; border-bottom:1px solid #1c2530; }
-  .fel{color:#3fb950}.le{color:#f85149}.sem{color:#d29922}.mag{color:#58a6ff}
-  #velemeny { font-size:15px; line-height:1.55; }
-  .nagy { font-size:34px; font-weight:bold; padding:6px 0; }
-  .statusz { font-size:11px; color:#8b949e; }
-  label { font-size:12px; color:#8b949e; display:block; margin-top:6px; }
-  input, select { background:#0a0e14; color:#e6edf3; border:1px solid #263041; border-radius:6px; padding:5px 8px; width:100%; margin:2px 0; font-size:14px;}
-  button { background:#238636; color:#fff; border:none; border-radius:6px; padding:7px 16px; cursor:pointer; margin-top:8px;}
-  .zsor { display:grid; grid-template-columns:1fr 150px; gap:6px; align-items:center; margin:8px 0;}
+* { box-sizing:border-box; }
+body { background:#0a0e14; color:#e6edf3; font-family:'Segoe UI',sans-serif; margin:0; padding:16px; }
+.wrap { max-width:1100px; margin:auto; }
+h1 { font-size:22px; } h1 span { color:#d29922; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; }
+.card { background:#131a24; border:1px solid #263041; border-radius:12px; padding:14px; }
+.card h2 { margin:0 0 10px; font-size:13px; color:#8b949e; text-transform:uppercase; letter-spacing:1px; }
+table { width:100%; border-collapse:collapse; font-size:14px; }
+td { padding:5px 4px; border-bottom:1px solid #1c2530; }
+.fel{color:#3fb950}.le{color:#f85149}.sem{color:#d29922}.mag{color:#58a6ff}
+#velemeny { font-size:15px; line-height:1.55; }
+.nagy { font-size:34px; font-weight:bold; padding:6px 0; }
+.statusz { font-size:11px; color:#8b949e; }
+label { font-size:12px; color:#8b949e; display:block; margin-top:6px; }
+input, select { background:#0a0e14; color:#e6edf3; border:1px solid #263041; border-radius:6px; padding:5px 8px; width:100%; margin:2px 0; font-size:14px;}
+button { background:#238636; color:#fff; border:none; border-radius:6px; padding:7px 16px; cursor:pointer; margin-top:8px;}
+.zsor { display:grid; grid-template-columns:1fr 150px; gap:6px; align-items:center; margin:8px 0;}
 </style>
 </head>
 <body>
 <div class="wrap">
-<h1>🧠 QH <span>AGY</span> <span class="statusz" id="utolso"></span></h1>
+<h1>QH <span>AGY</span> <span class="statusz" id="utolso"></span></h1>
 
 <div class="grid">
 
@@ -42,7 +42,7 @@
 
   <div class="card"><h2>Hírek (árupiac)</h2><table id="hirek"><tr><td>…</td></tr></table></div>
 
-  <div class="card" style="grid-column:1/-1"><h2>⚙️ Szintek beállítása (napi, estig érvényes)</h2>
+  <div class="card" style="grid-column:1/-1"><h2>⚙️ Szintek beállítása</h2>
     <div id="szintek"></div>
     <label>Zero-Gamma (Flip) — opcionális:</label>
     <input id="zg" type="number" placeholder="üresen hagyható">
@@ -55,8 +55,7 @@
 </div>
 
 <script>
-// ═══════════ TÍPUSOK ═══════════
-const TIPUSOK = {
+var TIPUSOK = {
   CALL_FAL:   {nev:"🔒 Call fal",             cimke:"le", suly:1},
   CALL_EROS:  {nev:"💪 CALL fal NAGYON erős", cimke:"le", suly:2},
   PUT_FAL:    {nev:"🛡️ Put fal",             cimke:"fel", suly:1},
@@ -65,10 +64,8 @@ const TIPUSOK = {
   ELLENALLAS: {nev:"🔴 Ellenállás",           cimke:"le", suly:0},
   MAGNES:     {nev:"🧲 Mágnes",              cimke:"mag", suly:0}
 };
-const SZINT_NEVEK = ["Szint 1","Szint 2","Szint 3","Szint 4","Szint 5","Szint 6"];
 
-// ═══════════ MENTETT ADATOK ═══════════
-const K = JSON.parse(localStorage.getItem("qh_agy2") || "null") || {
+var K = JSON.parse(localStorage.getItem("qh_agy3") || "null") || {
   szintek: [
     {s:"", t:"CALL_FAL"}, {s:"", t:"PUT_FAL"}, {s:"", t:"TAMASZ"},
     {s:"", t:"TAMASZ"},   {s:"", t:"ELLENALLAS"},{s:"", t:"MAGNES"}
@@ -80,155 +77,179 @@ while (K.szintek.length < 6) K.szintek.push({s:"", t:"TAMASZ"});
 function ment(){
   K.tdk = document.getElementById("tdk").value;
   K.zg  = document.getElementById("zg").value === "" ? null : +document.getElementById("zg").value;
-  for (let i=0;i<6;i++){
-    const v = document.getElementById("sz"+i).value;
+  for (var i=0;i<6;i++){
+    var v = document.getElementById("sz"+i).value;
     K.szintek[i].s = v === "" ? "" : +v;
     K.szintek[i].t = document.getElementById("tp"+i).value;
   }
-  localStorage.setItem("qh_agy2", JSON.stringify(K));
+  localStorage.setItem("qh_agy3", JSON.stringify(K));
   document.getElementById("mentve").textContent = "mentve ✓";
   rajzolInput(); rajzolTabla(); frissit();
 }
 
-// ═══════════ INPUT PANEL ═══════════
 function rajzolInput(){
-  document.getElementById("szintek").innerHTML = K.szintek.map((z,i)=>`
-    <div class="zsor">
-      <input id="szi"type="number"placeholder="{i}" type="number" placeholder="i"type="number"placeholder="{SZINT_NEVEK[i]} szintje" value="${z.s}">
-      <select id="tp${i}">
-        ${Object.entries(TIPUSOK).map(([kod,tt]) =>
-          `<option value="kod"{kod}"kod"{z.t===kod?"selected":""}>${tt.nev}</option>`).join("")}
-      </select>
-    </div>`).join("");
+  var html = "";
+  for (var i=0;i<6;i++){
+    var z = K.szintek[i];
+    var opc = "";
+    for (var kod in TIPUSOK){
+      var sel = (z.t===kod) ? " selected" : "";
+      opc += '<option value="'+kod+'"'+sel+'>'+TIPUSOK[kod].nev+'</option>';
+    }
+    html += '<div class="zsor">'
+      + '<input id="sz'+i+'" type="number" placeholder="Szint '+(i+1)+' szintje" value="'+z.s+'">'
+      + '<select id="tp'+i+'">'+opc+'</select>'
+      + '</div>';
+  }
+  document.getElementById("szintek").innerHTML = html;
   document.getElementById("zg").value = K.zg || "";
   document.getElementById("tdk").value = K.tdk || "";
 }
 
-// ═══════════ SZINT-TÁBLA ═══════════
 function rajzolTabla(){
-  const r = K.szintek.filter(z=>z.s!=="" && z.s).sort((a,b)=>b.s-a.s);
-  document.getElementById("szinttabla").innerHTML = r.length ?
-    "<table>" + r.map(z=>{
-      const t = TIPUSOK[z.t] || TIPUSOK.TAMASZ;
-      return `<tr><td>t.nev</td><tdclass="{t.nev}</td><td class="t.nev</td><tdclass="{t.cimke}"><b>${z.s}</b></td></tr>`;
-    }).join("") + "</table>"
-    : `<span class="statusz">Nincsenek szintek beírva</span>`;
+  var r = K.szintek.filter(function(z){ return z.s!=="" && z.s; });
+  r.sort(function(a,b){ return b.s-a.s; });
+  if (!r.length){
+    document.getElementById("szinttabla").innerHTML = '<span class="statusz">Nincsenek szintek beírva</span>';
+    return;
+  }
+  var html = "<table>";
+  for (var i=0;i<r.length;i++){
+    var t = TIPUSOK[r[i].t] || TIPUSOK.TAMASZ;
+    html += '<tr><td>'+t.nev+'</td><td class="'+t.cimke+'"><b>'+r[i].s+'</b></td></tr>';
+  }
+  document.getElementById("szinttabla").innerHTML = html + "</table>";
 }
 
-// ═══════════ ÁRAK ═══════════
 function proxy(u){ return "https://api.allorigins.win/raw?url=" + encodeURIComponent(u); }
 
 async function adatok() {
-  const P = {};
+  var P = {};
   try {
-    const j = await (await fetch(`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=15min&outputsize=40&apikey=${K.tdk}`)).json();
-    const v = j.values.map(x=>+x.close).reverse();
-    P["XAU/USD"] = { ar:v.at(-1), valt:(v.at(-1)/v.at(-3)-1)*100 };
+    var j = await (await fetch("https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=15min&outputsize=40&apikey=" + K.tdk)).json();
+    var v = j.values.map(function(x){ return +x.close; }).reverse();
+    P["XAU/USD"] = { ar: v[v.length-1], valt: (v[v.length-1]/v[v.length-3]-1)*100 };
   } catch(e){}
-  const parok = [["DXY","DX-Y.NYB"],["VIX","^VIX"],["EZÜST","SI=F"],["SPY","SPY"],["US10Y","^TNX"]];
-  await Promise.all(parok.map(async ([nev,sym]) => {
+  var parok = [["DXY","DX-Y.NYB"],["VIX","^VIX"],["EZÜST","SI=F"],["SPY","SPY"],["US10Y","^TNX"]];
+  await Promise.all(parok.map(async function(pr){
     try {
-      const j = await (await fetch(proxy(`https://query1.finance.yahoo.com/v8/finance/chart/${sym}?range=2d&interval=1d`))).json();
-      const m = j.chart.result[0].meta;
-      P[nev] = { ar:m.regularMarketPrice, valt:(m.regularMarketPrice/m.chartPreviousClose-1)*100 };
+      var j2 = await (await fetch(proxy("https://query1.finance.yahoo.com/v8/finance/chart/" + pr[1] + "?range=2d&interval=1d"))).json();
+      var m = j2.chart.result[0].meta;
+      P[pr[0]] = { ar:m.regularMarketPrice, valt:(m.regularMarketPrice/m.chartPreviousClose-1)*100 };
     } catch(e){}
   }));
   return P;
 }
 
-// ═══════════ HÍREK ═══════════
 async function hirek() {
   try {
-    const t = await (await fetch(proxy("https://www.investing.com/rss/news_11.rss"))).text();
-    return [...t.matchAll(/<title><!\[CDATA\[(.*?)\]\]><\/title>|<title>(.*?)<\/title>/g)]
-      .map(m=>m[1]||m[2]).slice(1,7);
+    var t = await (await fetch(proxy("https://www.investing.com/rss/news_11.rss"))).text();
+    var ered = [];
+    var re = /<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/g;
+    var m2;
+    while ((m2 = re.exec(t)) !== null) ered.push(m2[1]);
+    return ered.slice(1,7);
   } catch(e){ return []; }
 }
 
-// ═══════════ AZ AGY ═══════════
 function agy(P) {
-  let pont = 0; const ok = [];
-  const au = P["XAU/USD"];
+  var pont = 0; var ok = [];
+  var au = P["XAU/USD"];
 
-  // DXY-korreláció
   if (P["DXY"]) {
-    const d = P["DXY"].valt;
+    var d = P["DXY"].valt;
     pont += d < -0.1 ? 2 : d > 0.1 ? -2 : 0;
-    if (Math.abs(d) > 0.3) ok.push(`DXY d>0?"ero\Hso¨dik":"gyengu¨l"(<bclass="{d>0?"erősödik":"gyengül"} (<b class="d>0?"ero\Hso¨dik":"gyengu¨l"(<bclass="{d>0?'le':'fel'}">d.toFixed(2){d.toFixed(2)}%</b>) → aranyrad.toFixed(2){d>0?"nyomás":"támasz"}`);
+    if (Math.abs(d) > 0.3) ok.push("DXY " + (d>0?"erősödik":"gyengül") + ' (<b class="' + (d>0?'le':'fel') + '">' + d.toFixed(2) + "%</b>) → aranyra " + (d>0?"nyomás":"támasz"));
   }
-  // VIX
   if (P["VIX"]) {
-    const v = P["VIX"].valt;
-    pont += v > 2 ? 2 : v < -2 ? -1 : 0;
-    if (Math.abs(v) > 3) ok.push(`VIX <b class="v>0?′fel′:′le′">{v>0?'fel':'le'}">v>0?′fel′:′le′">{v.toFixed(1)}%</b> → ${v>0?"félelem nő, arany-barát":"nyugalom"}`);
+    var vv = P["VIX"].valt;
+    pont += vv > 2 ? 2 : vv < -2 ? -1 : 0;
+    if (Math.abs(vv) > 3) ok.push("VIX <b class=\"" + (vv>0?'fel':'le') + '">' + vv.toFixed(1) + "%</b> → " + (vv>0?"félelem nő, arany-barát":"nyugalom"));
   }
-  // Arany trend
   if (au && au.ar) {
     pont += au.valt > 0.15 ? 1 : au.valt < -0.15 ? -1 : 0;
-    ok.push(`Arany: <b>au.ar.toFixed(2)</b>({au.ar.toFixed(2)}</b> (au.ar.toFixed(2)</b>({au.valt>=0?"+":""}${au.valt.toFixed(2)}% / ~30 perc)`);
+    ok.push("Arany: <b>" + au.ar.toFixed(2) + "</b> (" + (au.valt>=0?"+":"") + au.valt.toFixed(2) + "% / ~30 perc)");
   }
-  // Flip (opcionális)
   if (K.zg && P["SPY"]) {
-    const felett = P["SPY"].ar > K.zg;
+    var felett = P["SPY"].ar > K.zg;
     pont += felett ? 1 : -1;
-    ok.push(`SPY (P["SPY"].ar.toFixed(0))aflip<bclass="{P["SPY"].ar.toFixed(0)}) a flip <b class="P["SPY"].ar.toFixed(0))aflip<bclass="{felett?'fel':'le'}">${felett?"FELETT ✅":"ALATT ⚠️"}</b>`);
+    ok.push("SPY (" + P["SPY"].ar.toFixed(0) + ') a flip <b class="' + (felett?'fel':'le') + '">' + (felett?"FELETT ✅":"ALATT ⚠️") + "</b>");
   }
 
-  // ── 6 SZINT elemzése ──
   if (au && au.ar) {
-    const akt = K.szintek.filter(z=>z.s!=="" && z.s).sort((a,b)=>b.s-a.s);
-    let feletti=null, alatti=null;
-    for (const z of akt) {
-      if (z.s > au.ar && !feletti) feletti = z;
-      else if (z.s <= au.ar && !alatti) alatti = z;
+    var akt = K.szintek.filter(function(z){ return z.s!=="" && z.s; });
+    akt.sort(function(a,b){ return b.s-a.s; });
+    var feletti=null, alatti=null;
+    for (var i=0;i<akt.length;i++){
+      if (akt[i].s > au.ar && !feletti) feletti = akt[i];
+      else if (akt[i].s <= au.ar && !alatti) alatti = akt[i];
     }
     if (feletti) {
-      const t = TIPUSOK[feletti.t];
-      ok.push(`Fölötted: t.nev<bclass="{t.nev} <b class="t.nev<bclass="{t.cimke}">feletti.s</b>(+{feletti.s}</b> (+feletti.s</b>(+{(feletti.s-au.ar).toFixed(1)} pt)` +
-        (t.suly===2 ? " — <b class='le'>ERŐS ellen-erő, ne támadj felfelé!</b>" : ""));
+      var t1 = TIPUSOK[feletti.t];
+      ok.push("Fölötted: " + t1.nev + ' <b class="' + t1.cimke + '">' + feletti.s + "</b> (+" + (feletti.s-au.ar).toFixed(1) + " pt)"
+        + (t1.suly===2 ? " — <b class='le'>ERŐS ellen-erő, ne támadj felfelé!</b>" : ""));
       if (feletti.t==="CALL_EROS") pont -= 2;
       if (feletti.t==="CALL_FAL")  pont -= 1;
     }
     if (alatti) {
-      const t = TIPUSOK[alatti.t];
-      ok.push(`Alattad: t.nev<bclass="{t.nev} <b class="t.nev<bclass="{t.cimke}">alatti.s</b>({alatti.s}</b> (alatti.s</b>({(alatti.s-au.ar).toFixed(1)} pt)` +
-        (t.suly===2 ? " — <b class='fel'>ERŐS támasz lent, közel a padló</b>" : ""));
+      var t2 = TIPUSOK[alatti.t];
+      ok.push("Alattad: " + t2.nev + ' <b class="' + t2.cimke + '">' + alatti.s + "</b> (" + (alatti.s-au.ar).toFixed(1) + " pt)"
+        + (t2.suly===2 ? " — <b class='fel'>ERŐS támasz lent, közel a padló</b>" : ""));
       if (alatti.t==="PUT_EROS") pont += 2;
       if (alatti.t==="PUT_FAL")  pont += 1;
     }
-    const mag = K.szintek.find(z=>z.t==="MAGNES" && z.s);
-    if (mag) ok.push(`🧲 Mágnes: <b class="mag">mag.s</b>—azaˊrfeleˊhuˊzhat({mag.s}</b> — az ár felé húzhat (mag.s</b>—azaˊrfeleˊhuˊzhat({au.ar>mag.s?"LEFELÉ":"FELFELÉ"})`);
+    for (var k2=0;k2<K.szintek.length;k2++){
+      var zz = K.szintek[k2];
+      if (zz.t==="MAGNES" && zz.s){
+        ok.push("🧲 Mágnes: <b class=\"mag\">" + zz.s + "</b> — az ár felé húzhat (" + (au.ar>zz.s?"LEFELÉ":"FELFELÉ") + ")");
+      }
+    }
   } else {
-    ok.push(`<span class="sem">⚠️ Nincs élő arany-ár – ellenőrizd a TwelveData kulcsot!</span>`);
+    ok.push('<span class="sem">⚠️ Nincs élő arany-ár – ellenőrizd a TwelveData kulcsot!</span>');
   }
 
-  const j = pont >= 3 ? ["LONG 💚","fel"] : pont <= -3 ? ["SHORT ❤️","le"] : ["SEMLEGES 🟡","sem"];
-  return { pont, ok, jel:j[0], cls:j[1] };
+  var jel, cls;
+  if (pont >= 3){ jel="LONG 💚"; cls="fel"; }
+  else if (pont <= -3){ jel="SHORT ❤️"; cls="le"; }
+  else { jel="SEMLEGES 🟡"; cls="sem"; }
+  return { pont:pont, ok:ok, jel:jel, cls:cls };
 }
 
-// ═══════════ MEGJELENÍTÉS ═══════════
 function tabla(id, sorok) {
-  document.getElementById(id).innerHTML = sorok.map(s=>`<tr>${s}</tr>`).join("");
+  var html = "";
+  for (var i=0;i<sorok.length;i++) html += "<tr>" + sorok[i] + "</tr>";
+  document.getElementById(id).innerHTML = html;
 }
+
+function elozetes(n){ return n>0 ? "+" : ""; }
 
 async function frissit() {
   if (!K.tdk) { document.getElementById("jelzes").textContent = "Add meg a TwelveData kulcsot! ⚙️"; return; }
-  const [P, H] = await Promise.all([adatok(), hirek()]);
+  var ered = await Promise.all([adatok(), hirek()]);
+  var P = ered[0], H = ered[1];
 
-  tabla("arak", Object.entries(P).map(([k,v])=>
-    `<td>k</td><tdclass="{k}</td><td class="k</td><tdclass="{v.valt>=0?'fel':'le'}">${v.ar?.toFixed?.(2)??"-"}</td>
-     <td class="v.valt>=0?′fel′:′le′">{v.valt>=0?'fel':'le'}">v.valt>=0?′fel′:′le′">{v.valt>=0?"+":""}${v.valt.toFixed(2)}%</td>`));
+  var arak = [];
+  for (var kulcs in P){
+    var v = P[kulcs];
+    var c = v.valt>=0 ? "fel" : "le";
+    arak.push("<td>"+kulcs+"</td><td class=\""+c+"\">"+ (v.ar!=null ? v.ar.toFixed(2) : "-") +"</td><td class=\""+c+"\">"+ elozetes(v.valt) + v.valt.toFixed(2) + "%</td>");
+  }
+  tabla("arak", arak);
 
-  tabla("hirek", H.length ? H.map(h=>`<td style="font-size:13px">📰 ${h}</td>`)
-                           : [`<td class="statusz">hírforrás nem elérhető</td>`]);
+  var hir = [];
+  for (var h2=0;h2<H.length;h2++) hir.push('<td style="font-size:13px">📰 '+H[h2]+'</td>');
+  if (!hir.length) hir.push('<td class="statusz">hírforrás nem elérhető</td>');
+  tabla("hirek", hir);
 
-  const E = agy(P);
+  var E = agy(P);
   document.getElementById("jelzes").innerHTML =
-    `<span class="E.cls">{E.cls}">E.cls">{E.jel}</span> <span class="statusz">pont: E.pont>0?"+":""{E.pont>0?"+":""}E.pont>0?"+":""{E.pont}</span>`;
-  document.getElementById("velemeny").innerHTML = E.ok.map(o=>`• ${o}`).join("<br>") +
-    `<br><br><i>${E.jel.startsWith("LONG") ? "Arany-barát összkép: gyenge dollár/nőző félelem + erős támasz alattad. Long az előnyösebb irány."
-      : E.jel.startsWith("SHORT") ? "Arany-ellenes összkép: erős dollár és/vagy call-fal fölötted. Fal-elutasításra számítok, short-mood."
-      : "Vegyes jelzések: tartomány-kereskedelem a szintek között, kis méretben, fal-reakciókra várva."}</i>`;
+    '<span class="'+E.cls+'">'+E.jel+'</span> <span class="statusz">pont: '+elozetes(E.pont)+E.pont+'</span>';
+
+  var zaro;
+  if (E.jel.indexOf("LONG")===0) zaro = "Arany-barát összkép: gyenge dollár/nőtt félelem + erős támasz alattad. Long az előnyösebb irány.";
+  else if (E.jel.indexOf("SHORT")===0) zaro = "Arany-ellenes összkép: erős dollár és/vagy call-fal fölötted. Fal-elutasításra számítok, short-mood.";
+  else zaro = "Vegyes jelzések: tartomány-kereskedelem a szintek között, kis méretben, fal-reakciókra várva.";
+  document.getElementById("velemeny").innerHTML = E.ok.join("<br>") + "<br><br><i>"+zaro+"</i>";
   document.getElementById("utolso").textContent = "· frissítve " + new Date().toLocaleTimeString("hu-HU");
 }
 
