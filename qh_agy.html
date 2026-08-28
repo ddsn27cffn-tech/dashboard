@@ -174,7 +174,7 @@ function gexKartyak(ar){
     var figy = felett
       ? "<div class='magyarazat' style='color:#f85149'>⚠️ FIGYELEM: a put wall FELETTED van! Ez rejtett ellenállás – az ár alatta, gamma-negatív zóna. Ha áttöri lefelé, gyorsulás jön. Ne kapd el a leeső kést!</div>"
       : "<div class='magyarazat'>🛡️ Put wall ALATTAD = támasz. Az ár ettől a szinttől visszapattanhat – fal-reakcióból longolni a legbiztonságosabb.</div>";
-    s += "<p>🛡️ <b>Put Wall: "+GEX.pw+"</b> ("+tav2()+" pt "+(felett?"fölötted":"alattad")+")</p>"+figy;
+    s += "<p>🛡️ <b>Put Wall: "+GEX.pw+"</b> ("+tav2+" pt "+(felett?"fölötted":"alattad")+")</p>"+figy;
   }
   if (GEX.zg != null){
     var f = ar > GEX.zg;
@@ -358,7 +358,7 @@ async function frissit(){
   var E=agy(P);
   document.getElementById("jelzes").innerHTML="<span class='"+E.cls+"'>"+E.jel+"</span> <span class='statusz'>pont: "+el(E.pont)+E.pont+"</span>";
   document.getElementById("velemeny").innerHTML=E.ok.join("<br>");
-  document.getElementById("gexkartya").innerHTML=rajzolGexKartya(P["XAU/USD"]?P["XAU/USD"].ar:null);
+  document.getElementById("gexkartya").innerHTML=gexKartyak(P["XAU/USD"]?P["XAU/USD"].ar:null);
   document.getElementById("charmskew").innerHTML=charmSkew();
   document.getElementById("atfogo").textContent=atfogo(P,E);
   document.getElementById("utolso").textContent="· "+new Date().toLocaleTimeString("hu-HU");
