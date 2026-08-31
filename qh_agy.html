@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+.<!DOCTYPE html>
 <html lang="hu">
 <head>
 <meta charset="UTF-8">
@@ -169,7 +169,7 @@ function gexKartyak(ar){
       + "<div class='magyarazat'>A legnagyobb call-gamma szintje: a piac ott \"plafont\" érez. Ha innen van feletted, az ár nehezen megy át rajta – a fade-eladás ott a leggyakoribb."+mly+"</div>";
   }
   if (GEX.pw != null){
-    var felett = ar > GEX.pw;
+    var felett = ar < GEX.pw;
     var tav2 = Math.abs(GEX.pw - ar).toFixed(1);
     var figy = felett
       ? "<div class='magyarazat' style='color:#f85149'>⚠️ FIGYELEM: a put wall FELETTED van! Ez rejtett ellenállás – az ár alatta, gamma-negatív zóna. Ha áttöri lefelé, gyorsulás jön. Ne kapd el a leeső kést!</div>"
