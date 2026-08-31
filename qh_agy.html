@@ -298,6 +298,8 @@ function agy(P) {
     pont += GEX.ch < 0 ? -1 : 1;
     ok.push("Charm "+(GEX.ch<0?"LEFELÉ":"felfelé")+" tol ("+GEX.ch.toLocaleString("hu-HU")+") – "+(GEX.ch<0?"délutáni lefelé nyomás":"felfelé segít"));
   }
+  if(GEX.flip && ar<GEX.flip && pont>0) pont=0;
+
 
   var jel,cls;
   if (pont>=3){ jel="LONG 💚"; cls="fel"; }
@@ -320,7 +322,7 @@ function atfogo(P, E){
     if (ar>GEX.pw && ar<GEX.cw)
       sor.push("Az ár a sáv BELSEJÉBEN van – tartomány-kereskedelem a várható: sávcikka fade-elése kis méretben, a falaknál visszafordulásra számítva.");
     else if (ar<GEX.pw)
-      sor.push("Az ár a sáv ALATT van (gamma-negatív zóna) – gyorsuló piac, a fal-reakcióig (GEX.pw) ne kapd el a kést.");
+      sor.push("Az ár a sáv ALATT van (gamma-negatív zóna) – gyorsuló piac, a fal-reakcióig ("+GEX.pw+") ne kapd el a kést.");
     else
       sor.push("Az ár a sáv FELETT van – a call wall felé húz (mágnes), de közeledve elnyomás várható.");
   }
