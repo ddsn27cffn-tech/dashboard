@@ -1,13 +1,13 @@
-.<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="hu">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>QH AGY 2.0</title>
+<title>QH AGY 3.0</title>
 <style>
 * { box-sizing:border-box; }
 body { background:#0a0e14; color:#e6edf3; font-family:'Segoe UI',sans-serif; margin:0; padding:14px; }
-.wrap { max-width:1100px; margin:auto; }
+.wrap { max-width:1150px; margin:auto; }
 h1 { font-size:22px; } h1 span { color:#d29922; }
 .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; }
 .card { background:#131a24; border:1px solid #263041; border-radius:12px; padding:13px; }
@@ -17,28 +17,39 @@ td { padding:4px 3px; border-bottom:1px solid #1c2530; }
 .fel{color:#3fb950}.le{color:#f85149}.sem{color:#d29922}.mag{color:#58a6ff}
 #velemeny, #atfogo { font-size:14px; line-height:1.6; }
 #atfogo { white-space:pre-line; background:#0d1420; border:1px solid #1c2530; border-radius:8px; padding:10px; }
-.nagy { font-size:32px; font-weight:bold; padding:4px 0; }
+.nagy { font-size:30px; font-weight:bold; padding:4px 0; }
+.pontkijelzo { display:inline-block; padding:2px 10px; border-radius:12px; font-size:13px; font-weight:bold; margin-left:8px; }
+.p-eros { background:#1a3a1a; color:#3fb950; border:1px solid #3fb950; }
+.p-kozep { background:#3a2e10; color:#d29922; border:1px solid #d29922; }
+.p-gyenge{ background:#2a2a2a; color:#8b949e; border:1px solid #555; }
 .statusz { font-size:11px; color:#8b949e; }
 .magyarazat { font-size:12px; color:#8b949e; margin-top:5px; line-height:1.5; }
-.vesz { color:#f85149; font-weight:bold; }
+.riaszt { background:#3d1114; border:1px solid #f85149; border-radius:8px; padding:8px 10px; margin:6px 0; color:#f85149; font-weight:bold; font-size:13px; }
 label { font-size:12px; color:#8b949e; display:block; margin-top:6px; }
 input, select { background:#0a0e14; color:#e6edf3; border:1px solid #263041; border-radius:6px; padding:5px 8px; width:100%; margin:2px 0; font-size:14px;}
-button { background:#238636; color:#fff; border:none; border-radius:6px; padding:7px 16px; cursor:pointer; margin-top:8px;}
+button { background:#238636; color:#fff; border:none; border-radius:6px; padding:7px 16px; cursor:pointer; margin-top:8px; }
+button.szurke { background:#30363d; }
 .zsor { display:grid; grid-template-columns:1fr 150px; gap:6px; align-items:center; margin:7px 0;}
 .gexzsor { display:grid; grid-template-columns:110px 1fr; gap:6px; align-items:center; margin:5px 0; font-size:13px;}
+#spark { width:100%; height:60px; }
+.jelnaplo { font-size:12px; max-height:140px; overflow-y:auto; }
+.jelnap { display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid #1c2530; }
+.termesztes { margin-left:6px; font-size:14px; }
 </style>
 </head>
 <body>
 <div class="wrap">
-<h1>QH <span>AGY 2.0</span> <span class="statusz" id="utolso"></span></h1>
+<h1>QH <span>AGY 3.0</span> <span class="statusz" id="utolso"></span></h1>
 
 <div class="grid">
 
   <div class="card" style="grid-column:1/-1">
-    <h2>Jelenlegi tanács</h2>
+    <h2>Jelenlegi tanács + AGY-AUTO pontszám</h2>
     <div class="nagy" id="jelzes">Betöltés…</div>
     <div id="velemeny"></div>
   </div>
+
+  <div class="card"><h2>🚨 Szint-riasztások</h2><div id="riasztok" class="statusz">Nincs riasztás</div></div>
 
   <div class="card"><h2>📊 GEX helyzetkép</h2><div id="gexkartya" class="statusz">Még nincs GEX-adat ⚙️</div></div>
 
@@ -46,7 +57,11 @@ button { background:#238636; color:#fff; border:none; border-radius:6px; padding
 
   <div class="card"><h2>Árfolyamok (élő)</h2><table id="arak"><tr><td>…</td></tr></table></div>
 
+  <div class="card"><h2>📈 XAU trend (4 óra, 15m)</h2><canvas id="spark" width="280" height="60"></canvas><div class="statusz" id="sparkinfo"></div></div>
+
   <div class="card"><h2>Szintek (6 zóna)</h2><div id="szinttabla"></div></div>
+
+  <div class="card"><h2>📜 Jelzés-történet (utolsó 15)</h2><div id="jeltort" class="jelzes jelnes statusz">Még nincs…</div></div>
 
   <div class="card" style="grid-column:1/-1">
     <h2>🔭 Átfogó helyzetértékelés</h2>
@@ -54,6 +69,7 @@ button { background:#238636; color:#fff; border:none; border-radius:6px; padding
   </div>
 
   <div class="card" style="grid-column:1/-1"><h2>⚙️ Szintek beállítása</h2>
+    <button class="szurke" onclick="falakSzintekbe()">🪄 Falak + flip automatikus betöltése a szintekbe</button>
     <div id="szintek"></div>
     <label>TwelveData kulcs:</label>
     <input id="tdk" placeholder="kulcs">
@@ -64,14 +80,16 @@ button { background:#238636; color:#fff; border:none; border-radius:6px; padding
     <div class="gexzsor"><span>🔒 Call Wall:</span><input id="g_cw" type="number"></div>
     <div class="gexzsor"><span>🛡️ Put Wall:</span><input id="g_pw" type="number"></div>
     <div class="gexzsor"><span>⚖️ Flip:</span><input id="g_zg" type="number"></div>
-    <div class="gexzsor"><span>🌀 Charm:</span><input id="g_ch" type="number" placeholder="pl. -69215"></div>
-    <div class="gexzsor"><span>🔀 IV Skew:</span><input id="g_sk" type="number" step="0.01" placeholder="pl. 25.34"></div>
+    <div class="gexzsor"><span>🌀 Charm:</span><input id="g_ch" type="number" placeholder="pl. -204057"></div>
+    <div class="gexzsor"><span>🔀 IV Skew:</span><input id="g_sk" type="number" step="0.01" placeholder="pl. -8.3"></div>
     <div class="gexzsor"><span>📊 Rezsim:</span>
       <select id="g_rez">
+        <option value="auto">AUTO (flipből számol)</option>
         <option value="elnyomas">ELNYOMÁS (fade OK)</option>
         <option value="gyorsulas">GYORSULÁS (fade óvatosan!)</option>
       </select></div>
-    <div class="gexzsor"><span>Riport ideje:</span><input id="g_ido" placeholder="pl. 14:39"></div>
+    <div class="gexzsor"><span>Riport ideje:</span><input id="g_ido" placeholder="pl. 20:51"></div>
+    <div class="statusz" id="riportkor"></div>
     <button onclick="mentGex()">GEX mentése</button> <span class="statusz" id="gexmentve"></span>
   </div>
 
@@ -86,11 +104,12 @@ var TIPUSOK = {
   PUT_EROS:   {nev:"💪 PUT fal NAGYON erős",  cimke:"fel", suly:2},
   TAMASZ:     {nev:"🟢 Támasz",              cimke:"fel", suly:0},
   ELLENALLAS: {nev:"🔴 Ellenállás",           cimke:"le", suly:0},
-  MAGNES:     {nev:"🧲 Mágnes",              cimke:"mag", suly:0}
+  MAGNES:     {nev:"🧲 Mágnes",              cimke:"mag", suly:0},
+  FLIP:       {nev:"⚖️ Flip (zero gamma)",   cimke:"mag", suly:0}
 };
 
 var GEX = JSON.parse(localStorage.getItem("qh_gex") || "null") || {
-  cw:null, pw:null, zg:null, ch:null, sk:null, rez:"elnyomas", ido:""
+  cw:null, pw:null, zg:null, ch:null, sk:null, rez:"auto", ido:"", mentesIdo:null
 };
 var K = JSON.parse(localStorage.getItem("qh_k3") || "null") || {
   szintek: [
@@ -100,6 +119,7 @@ var K = JSON.parse(localStorage.getItem("qh_k3") || "null") || {
   tdk:null
 };
 while (K.szintek.length < 6) K.szintek.push({s:"", t:"TAMASZ"});
+var JELTORT = JSON.parse(localStorage.getItem("qh_jeltort") || "[]");
 
 function mentSzint(){
   K.tdk = document.getElementById("tdk").value;
@@ -118,9 +138,25 @@ function mentGex(){
   GEX.ch=num("g_ch"); GEX.sk=num("g_sk");
   GEX.rez=document.getElementById("g_rez").value;
   GEX.ido=document.getElementById("g_ido").value;
+  GEX.mentesIdo = Date.now();
   localStorage.setItem("qh_gex", JSON.stringify(GEX));
   document.getElementById("gexmentve").textContent = "mentve ✓";
   frissit();
+}
+
+// ── 🪄 Falak automatikus betöltése a szintek közé ──
+function falakSzintekbe(){
+  var betolt = [GEX.cw && {s:GEX.cw,t:"CALL_FAL"}, GEX.pw && {s:GEX.pw,t:"PUT_FAL"},
+                GEX.zg && {s:GEX.zg,t:"FLIP"}].filter(Boolean);
+  var i = 0;
+  betolt.forEach(function(b){
+    // üres helyre, vagy ahol már van ugyanolyan típus
+    var cel = K.szintek.findIndex(function(z){ return !z.s || z.t===b.t; });
+    if (cel >= 0){ K.szintek[cel] = b; } else if (i < 6){ K.szintek[i] = b; }
+    i++;
+  });
+  localStorage.setItem("qh_k3", JSON.stringify(K));
+  rajzolInput(); rajzolTabla(); frissit();
 }
 
 function rajzolInput(){
@@ -143,6 +179,7 @@ function rajzolGexInputs(){
   document.getElementById("g_sk").value = GEX.sk==null?"":GEX.sk;
   document.getElementById("g_rez").value = GEX.rez;
   document.getElementById("g_ido").value = GEX.ido||"";
+  riportKor();
 }
 function rajzolTabla(){
   var r = K.szintek.filter(function(z){ return z.s; });
@@ -156,57 +193,80 @@ function rajzolTabla(){
   document.getElementById("szinttabla").innerHTML=html+"</table>";
 }
 
-// ── GEX kártyák + szöveges magyarázatok ──
+// ── A4: RIPORT-KOR JELZŐ ──
+function riportKor(){
+  var el = document.getElementById("riportkor");
+  if (!GEX.mentesIdo){ el.textContent=""; return; }
+  var perc = Math.round((Date.now()-GEX.mentesIdo)/60000);
+  if (perc > 180) el.innerHTML = "<span class='le'>⚠️ GEX-riport ELAVULT ("+perc+" perce mentve) – futtasd a Colab-cellát!</span>";
+  else el.innerHTML = "<span class='fel'>Riport friss ("+perc+" perce mentve)</span>";
+}
+
+// ── GEX kártyák ──
 function gexKartyak(ar){
-  var s = "";
+  var s = "", riaszt=[];
   function szam(x){ return x==null ? "—" : x; }
 
   if (GEX.cw != null){
-    var tav = (GEX.cw - ar).toFixed(1);
+    var tav = Math.abs(GEX.cw - ar);
     var irany = GEX.cw > ar ? "fölötted" : "alattad";
-    var mly = Math.abs(tav) < 15 ? " – közel vagy hozzá, ide közelítve fal-reakció várható!" : "";
-    s += "<p>🔒 <b>Call Wall: "+GEX.cw+"</b> ("+Math.abs(tav)+" pt "+irany+")</p>"
-      + "<div class='magyarazat'>A legnagyobb call-gamma szintje: a piac ott \"plafont\" érez. Ha innen van feletted, az ár nehezen megy át rajta – a fade-eladás ott a leggyakoribb."+mly+"</div>";
+    var kozel = tav/ar < 0.003;
+    if (kozel) riaszt.push("🔒 CALL FAL ("+GEX.cw+") csak "+tav.toFixed(1)+" pt-re! Fal-reakció várható – long NEM indul innen felfelé, inkább zárás/fade.");
+    s += "<p>🔒 <b>Call Wall: "+GEX.cw+"</b> ("+tav.toFixed(1)+" pt "+irany+")</p>"
+      + "<div class='magyarazat'>A legnagyobb call-gamma szintje: plafon-érzés. Fal ELŐTT zárás (a fal 0.3%-a előtt), a falon fade-elés a leggyakoribb.</div>";
   }
   if (GEX.pw != null){
     var felett = ar < GEX.pw;
-    var tav2 = Math.abs(GEX.pw - ar).toFixed(1);
+    var tav2 = Math.abs(GEX.pw - ar);
+    if (felett && tav2/ar < 0.005) riaszt.push("🛡️ PUT WALL ("+GEX.pw+") felett "+tav2.toFixed(1)+" pt-re – rejtett ellenállás közel! Ne kapd el a leeső kést, fal-reakcióra várj.");
     var figy = felett
-      ? "<div class='magyarazat' style='color:#f85149'>⚠️ FIGYELEM: a put wall FELETTED van! Ez rejtett ellenállás – az ár alatta, gamma-negatív zóna. Ha áttöri lefelé, gyorsulás jön. Ne kapd el a leeső kést!</div>"
-      : "<div class='magyarazat'>🛡️ Put wall ALATTAD = támasz. Az ár ettől a szinttől visszapattanhat – fal-reakcióból longolni a legbiztonságosabb.</div>";
-    s += "<p>🛡️ <b>Put Wall: "+GEX.pw+"</b> ("+tav2+" pt "+(felett?"fölötted":"alattad")+")</p>"+figy;
+      ? "<div class='magyarazat' style='color:#f85149'>⚠️ A put wall FELETTED van: rejtett ellenállás, gamma-negatív zóna. Áttörésnél gyorsulás lefelé.</div>"
+      : "<div class='magyarazat'>🛡️ Put wall ALATTAD = támasz. Fal-reakcióból long a legbiztonságosabb.</div>";
+    s += "<p>🛡️ <b>Put Wall: "+GEX.pw+"</b> ("+tav2.toFixed(1)+" pt "+(felett?"fölötted":"alattad")+")</p>"+figy;
   }
   if (GEX.zg != null){
     var f = ar > GEX.zg;
-    s += "<p>⚖️ <b>Flip (zero gamma): "+GEX.zg+"</b> – "+(f?"FELETTED ✅":"ALATTAD ⚠️")+"</p>"
+    if (!f && Math.abs(ar-GEX.zg)/ar < 0.004) riaszt.push("⚖️ FLIP ("+GEX.zg+") közel! Átkelés = rezsim-váltás: gyorsulás↔elnyomás. Fokozott figyelem!");
+    s += "<p>⚖️ <b>Flip: "+GEX.zg+"</b> – "+(f?"FELETTED ✅":"ALATTAD ⚠️")+"</p>"
       + "<div class='magyarazat'>"+(f
-        ? "Gamma-pozitív zóna: a piac elnyomja a volatilitást, az ár visszatérhet a flip felé. A trend-áttöréseket gyakran visszafade-lik."
-        : "Gamma-negatív zóna: a piac gyorsul, a mozgások nagyobbak és gyorsabbak. Fade-elés itt veszélyes, inkább áttöréseket követni!")+"</div>";
+        ? "Gamma-pozitív: elnyomás, visszatérés a flip/fal felé várható."
+        : "Gamma-negatív: gyorsuló piac, nagy mozgások. Fade veszélyes, trendet követni!")+"</div>";
   }
   if (GEX.ido) s += "<p class='statusz'>Riport: "+GEX.ido+"</p>";
-  return s || "<span class='statusz'>GEX-adat nincs – töltsd ki az alsó panelből!</span>";
+  document.getElementById("riaszt").innerHTML && 0;
+  return { html: s || "<span class='statusz'>GEX-adat nincs – töltsd ki az alsó panelből!</span>", riaszt:riaszt };
 }
-function charmSkew(){
+function charmSkew(ar){
   var s = "";
   if (GEX.ch != null){
     var le = GEX.ch < 0;
-    s += "<p>🌀 <b>Charm: "+GEX.ch.toLocaleString("hu-HU")+"</b> ("+(le?"LEFELÉ":"FELFELÉ")+" tol)</p>"
-      + "<div class='magyarazat'>A charm a delta napi lecsúszását méri. "+(le
-        ? "Negatív: a dealer long-calljai elveszítik deltalukat, ami délután LEFELÉ nyom – főleg 14:00 után. Ha longolsz, lentről (támasz-reakcióból) csináld, ne felkapva."
+    // 🕐 IDŐSÚLYOZÁS: a charm délután (13:00 után) 2×-ére erősödik
+    var ora = new Date().getHours();
+    var suly = ora >= 13 ? 2 : 1;
+    var hatas = Math.abs(GEX.ch)*suly;
+    var eros = hatas > 150000;
+    s += "<p>🌀 <b>Charm: "+GEX.ch.toLocaleString("hu-HU")+"</b> ("+(le?"LEFELÉ":"FELFELÉ")+" tol)"
+      + (suly===2 ? " <span class='sem'>🕐 délutáni 2× súly</span>" : "")
+      + (eros ? " <span class='le'>– ERŐS nyomás!</span>" : "") + "</p>"
+      + "<div class='magyarazat'>"+(le
+        ? "Negatív: dealer-delta bomlás LEFELÉ nyom, "+(suly===2?"és most délután van – a hatás DUPLÁZÓDIK! Long csak támasz-reakcióból.":"főleg 13:00 után érvényesül. Ha longolsz, lentről csináld.")
         : "Pozitív: felfelé toló nyomás – a lehulló áraknál vételi érdeklődés ébredhet.")+"</div>";
   }
   if (GEX.sk != null){
-    var ero = GEX.sk > 15 ? "magas" : GEX.sk > 5 ? "mérsékelt" : "alacsony";
+    var ero = GEX.sk > 15 ? "magas" : GEX.sk > 5 ? "mérsékelt" : GEX.sk < -5 ? "CALL-oldali (ritka!)" : "alacsony";
     s += "<p>🔀 <b>IV Skew: "+GEX.sk+"</b> ("+ero+")</p>"
-      + "<div class='magyarazat'>A put-ek drágábbak a call-nál, ha pozitív. Skew "+ero+": "+(GEX.sk>15
-        ? "a piac SOKAT fizet a leesés elleni védelemért – van félelem a rendszerben, a törések gyorsak szoktak lenni. Óvatosan a longokkal, kis méret!"
-        : "nyugodtabb piac, a leesés elleni védelem olcsó.")+"</div>";
+      + "<div class='magyarazat'>"+(GEX.sk>15
+        ? "A piac SOKAT fizet a leesés-védelemért: félelem van, törések gyorsak. Kis méret, stop kötelező!"
+        : GEX.sk < -5
+        ? "Negatív skew: a call-ek drágábbak – emelkedés-várakozás vagy call-vásárlási láz. A tetőnél óvatos!"
+        : "Nyugodtabb piac, a védelem olcsó.")+"</div>";
   }
   if (GEX.rez){
-    s += "<p>📊 <b>Rezsim: "+(GEX.rez=="elnyomas"?"ELNYOMÁS – fade OK":"GYORSULÁS – fade óvatosan!")+"</b></p>"
-      + "<div class='magyarazat'>"+(GEX.rez=="elnyomas"
-        ? "Az ár a flip felett: a dealer-pozíciók elnyomják a volatilitást – a szintek közt oscillálás a barátod, a falaknál fade-elhető."
-        : "Az ár a flip alatt: az ármozgás öngerjesztő lehet, gyors lépésekkel érdemes kereskedni, fal-fade-nél szűkebb stop!")+"</div>";
+    var elny = GEX.rez=="auto" ? (GEX.zg && ar ? ar > GEX.zg : true) : GEX.rez=="elnyomas";
+    s += "<p>📊 <b>Rezsim: "+(elny?"ELNYOMÁS – fade OK":"GYORSULÁS – fade óvatosan!")+"</b></p>"
+      + "<div class='magyarazat'>"+(elny
+        ? "Flip felett: a szintek közt oscillálás a barátod, falaknál fade-elhető."
+        : "Flip alatt: öngerjesztő mozgás, trend-irányban maradj, fal-fade-nél szűkebb stop!")+"</div>";
   }
   return s || "<span class='statusz'>GEX-adat nincs</span>";
 }
@@ -216,9 +276,12 @@ function proxy(u){ return "https://api.allorigins.win/raw?url=" + encodeURICompo
 async function adatok() {
   var P = {};
   try {
-    var j = await (await fetch("https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=15min&outputsize=40&apikey=" + K.tdk)).json();
+    var j = await (await fetch("https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=15min&outputsize=16&apikey=" + K.tdk)).json();
     var v = j.values.map(function(x){ return +x.close; }).reverse();
-    P["XAU/USD"] = { ar: v[v.length-1], valt: (v[v.length-1]/v[v.length-3]-1)*100 };
+    if (v.length){
+      P["XAU/USD"] = { ar: v[v.length-1], valt: (v[v.length-1]/v[v.length-3]-1)*100 };
+      P._spark = v;
+    }
   } catch(e){}
   var parok = [["DXY","DX-Y.NYB"],["VIX","^VIX"],["EZÜST","SI=F"],["SPY","SPY"],["US10Y","^TNX"]];
   await Promise.all(parok.map(async function(pr){
@@ -230,16 +293,26 @@ async function adatok() {
   }));
   return P;
 }
-async function hirek() {
-  try {
-    var t = await (await fetch(proxy("https://www.investing.com/rss/news_11.rss"))).text();
-    var ered=[], re=/<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/g, m2;
-    while ((m2=re.exec(t))!==null) ered.push(m2[1]);
-    return ered.slice(1,7);
-  } catch(e){ return []; }
+
+// ── SPARKLINE ──
+function spark(v){
+  var c = document.getElementById("spark"), ctx = c.getContext("2d");
+  ctx.clearRect(0,0,c.width,c.height);
+  if (!v || v.length<2) return;
+  var mn=Math.min.apply(null,v), mx=Math.max.apply(null,v), r=(mx-mn)||1;
+  ctx.beginPath();
+  for (var i=0;i<v.length;i++){
+    var x=i/(v.length-1)*c.width, y=c.height-6-((v[i]-mn)/r)*(c.height-14);
+    i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+  }
+  var felfele = v[v.length-1]>=v[0];
+  ctx.strokeStyle = felfele?"#3fb950":"#f85149"; ctx.lineWidth=2; ctx.stroke();
+  ctx.lineTo(c.width,c.height); ctx.lineTo(0,c.height); ctx.closePath();
+  ctx.fillStyle = felfele?"rgba(63,185,80,.12)":"rgba(248,81,73,.12)"; ctx.fill();
+  document.getElementById("sparkinfo").textContent = "min "+mn.toFixed(1)+" · max "+mx.toFixed(1)+" · most "+v[v.length-1].toFixed(1);
 }
 
-// ── AZ AGY ──
+// ── AZ AGY 3.0 ──
 function agy(P) {
   var pont=0, ok=[];
   var au=P["XAU/USD"];
@@ -254,25 +327,25 @@ function agy(P) {
     pont += vv>2?2:vv<-2?-1:0;
     if (Math.abs(vv)>3) ok.push("VIX <b class='"+(vv>0?"fel":"le")+"'>"+vv.toFixed(1)+"%</b>");
   }
-  if (au && au.ar) {
+  var ar = au && au.ar ? au.ar : null;
+  if (ar) {
     pont += au.valt>0.15?1:au.valt<-0.15?-1:0;
-    ok.push("Arany: <b>"+au.ar.toFixed(2)+"</b> ("+(au.valt>=0?"+":"")+au.valt.toFixed(2)+"%)");
+    ok.push("Arany: <b>"+ar.toFixed(2)+"</b> ("+(au.valt>=0?"+":"")+au.valt.toFixed(2)+"%)");
   }
 
-  // szintek
-  if (au && au.ar) {
+  // ── Szintek ──
+  if (ar) {
     var akt=K.szintek.filter(function(z){return z.s;});
     akt.sort(function(a,b){return b.s-a.s;});
     var feletti=null, alatti=null;
     for (var i=0;i<akt.length;i++){
-      if (akt[i].s>au.ar && !feletti) feletti=akt[i];
-      else if (akt[i].s<=au.ar && !alatti) alatti=akt[i];
+      if (akt[i].s>ar && !feletti) feletti=akt[i];
+      else if (akt[i].s<=ar && !alatti) alatti=akt[i];
     }
     if (feletti) {
       var t1=TIPUSOK[feletti.t];
-      ok.push("Fölötted: "+t1.nev+" <b class='"+t1.cimke+"'>"+feletti.s+"</b> (+"+(feletti.s-au.ar).toFixed(1)+" pt)");
+      ok.push("Fölötted: "+t1.nev+" <b class='"+t1.cimke+"'>"+feletti.s+"</b> (+"+(feletti.s-ar).toFixed(1)+" pt)");
       if (feletti.t==="CALL_EROS") pont-=2; if (feletti.t==="CALL_FAL") pont-=1;
-      // ⚠️ ÚJ: put wall FELETTED = rejtett ellenállás!
       if (feletti.t==="PUT_FAL"||feletti.t==="PUT_EROS") {
         pont-=1;
         ok.push("<span class='le'>⚠️ Put wall FELETTED! Rejtett ellenállás – áttörésnél gyorsulás lefelé!</span>");
@@ -280,64 +353,107 @@ function agy(P) {
     }
     if (alatti) {
       var t2=TIPUSOK[alatti.t];
-      ok.push("Alattad: "+t2.nev+" <b class='"+t2.cimke+"'>"+alatti.s+"</b> ("+(alatti.s-au.ar).toFixed(1)+" pt)");
+      ok.push("Alattad: "+t2.nev+" <b class='"+t2.cimke+"'>"+alatti.s+"</b> ("+(alatti.s-ar).toFixed(1)+" pt)");
       if (alatti.t==="PUT_EROS") pont+=2;
       if (alatti.t==="PUT_FAL") pont+=1;
+      // 🆕 mágnes húzása
+      if (alatti.t==="MAGNES"){ pont+=0; ok.push("<span class='mag'>🧲 Mágnes alattad – felfelé húzhat vissza, ha visszatér az ár.</span>"); }
     }
   } else {
     ok.push('<span class="sem">⚠️ Nincs élő arany-ár – ellenőrizd a TwelveData kulcsot!</span>');
   }
 
-  // GEX-inputok súlya (csak ha élő ár is van)
-  if (GEX.zg && au && au.ar) {
-    var felett2 = au.ar > GEX.zg;
+  // ── GEX-inputok ──
+  var gyorsulas = false;
+  if (GEX.zg && ar) {
+    var felett2 = ar > GEX.zg;
+    gyorsulas = !felett2;
     pont += felett2 ? 1 : -1;
     ok.push("Flip "+GEX.zg+": <b class='"+(felett2?"fel":"le")+"'>"+(felett2?"FELETT ✅":"ALATT ⚠️")+"</b>");
   }
-  if (GEX.ch != null && Math.abs(GEX.ch) > 30000) {
-    pont += GEX.ch < 0 ? -1 : 1;
-    ok.push("Charm "+(GEX.ch<0?"LEFELÉ":"felfelé")+" tol ("+GEX.ch.toLocaleString("hu-HU")+") – "+(GEX.ch<0?"délutáni lefelé nyomás":"felfelé segít"));
+  // 🕐 Charm IDŐSÚLYOZOTT: délután 2×
+  if (GEX.ch != null && ar) {
+    var ora = new Date().getHours();
+    var c_suly = ora >= 13 ? 2 : 1;
+    var c_hat = GEX.ch * c_suly;
+    if (Math.abs(c_hat) > 30000) {
+      pont += c_hat < 0 ? -1 : 1;
+      ok.push("Charm "+(c_hat<0?"LEFELÉ":"felfelé")+" tol"+(c_suly===2?" <span class='sem'>(délutáni 2× súly!)</span>":"")
+        +" – "+(c_hat<0?"délutáni lefelé nyomás":"felfelé segít"));
+    }
   }
-  if(GEX.flip && ar<GEX.flip && pont>0) pont=0;
-
+  // 🆕 SKEW mint jelző
+  if (GEX.sk != null && Math.abs(GEX.sk) > 10) {
+    pont += GEX.sk > 0 ? -1 : 1;
+    ok.push("Skew "+GEX.sk+": "+(GEX.sk>0?"félelem a rendszerben – óvatosság":"call-oldali hangulat"));
+  }
+  // 🆕 gyorsulás-mód: a pozitív pontszámot tompítja (flip alatt long-fall-reakció megbízhatatlan)
+  if (gyorsulas && pont>0) { pont = Math.floor(pont/2); ok.push("<span class='sem'>⚡ GYORSULÁS-mód: a LONG-pontszám felezve – flip alatt a fal-reakciók megbízhatatlanok!</span>"); }
 
   var jel,cls;
   if (pont>=3){ jel="LONG 💚"; cls="fel"; }
   else if (pont<=-3){ jel="SHORT ❤️"; cls="le"; }
   else { jel="SEMLEGES 🟡"; cls="sem"; }
-  return {pont:pont, ok:ok, jel:jel, cls:cls};
+
+  // 🆕 AGY-AUTO pontszám (0–10, a Colab v3.1 logikája, élő adatokkal)
+  var apont = 0;
+  if (GEX.ch != null) apont += Math.min(Math.abs(GEX.ch)/30000, 4);
+  if (GEX.zg && ar)   apont += Math.min(Math.abs(ar-GEX.zg)/(ar*0.01), 3);
+  if (GEX.sk != null) apont += Math.min(Math.abs(GEX.sk)/1.5, 2);
+  if (ar && GEX.pw && GEX.cw && ar>GEX.pw && ar<GEX.cw) apont += 1;
+  apont = Math.round(apont*10)/10;
+  var aero = apont>=7?"ERŐS":apont>=4?"KÖZEPES":"GYENGE";
+  var airany = (GEX.ch!=null && GEX.ch<0) ? "LE" : "FEL";
+
+  return {pont:pont, ok:ok, jel:jel, cls:cls, apont:apont, aero:aero, airany:airany};
 }
 
 // ── ÁTFOGÓ SZÖVEG ──
 function atfogo(P, E){
   var au=P["XAU/USD"]; if (!au||!au.ar) return "Nincs élő arany-ár – a kulcsot ellenőrizd!";
   var ar=au.ar, sor=[];
-
-  sor.push("📍 HELYZET: Az arany "+ar.toFixed(1)+"-en áll.");
-
+  sor.push("📍 HELYZET: Az arany "+ar.toFixed(1)+"-en áll. AGY-AUTO: "+E.airany+"-irány, erősség "+E.apont+"/10 ("+E.aero+").");
   if (GEX.cw && GEX.pw){
     var terj=GEX.cw-GEX.pw;
     sor.push("");
-    sor.push("FALAK: A put wall "+GEX.pw+" és a call wall "+GEX.cw+" közötti "+terj.toFixed(0)+" pontos sáv a mai harctér.");
+    sor.push("FALAK: put wall "+GEX.pw+" – call wall "+GEX.cw+" ("+terj.toFixed(0)+" pontos harctér).");
     if (ar>GEX.pw && ar<GEX.cw)
-      sor.push("Az ár a sáv BELSEJÉBEN van – tartomány-kereskedelem a várható: sávcikka fade-elése kis méretben, a falaknál visszafordulásra számítva.");
+      sor.push("Az ár a sáv BELSEJÉBEN – tartomány-kereskedelem: sávcikka fade kis méretben, falaknál visszafordulás.");
     else if (ar<GEX.pw)
-      sor.push("Az ár a sáv ALATT van (gamma-negatív zóna) – gyorsuló piac, a fal-reakcióig ("+GEX.pw+") ne kapd el a kést.");
+      sor.push("Az ár a sáv ALATT (gamma-negatív) – gyorsuló piac, a "+GEX.pw+" fal-reakcióig ne kapd el a kést.");
     else
-      sor.push("Az ár a sáv FELETT van – a call wall felé húz (mágnes), de közeledve elnyomás várható.");
+      sor.push("Az ár a sáv FELETT – a call wall felé húz (mágnes), közeledve elnyomás várható: fal ELŐTT zárás.");
   }
-  if (GEX.zg) sor.push("REZSIM: "+(ar>GEX.zg ? "Flip ("+GEX.zg+") felett = ELNYOMÁS. A volatilitás visszaesik, tartományi kereskedés előnyben." : "Flip alatt = GYORSULÁS. A mozgások nagyok, a fade taktika veszélyes, trend-irányban maradj."));
-
-  if (GEX.ch!=null) sor.push("CHARM: "+(GEX.ch<0?"Negatív ("+GEX.ch.toLocaleString("hu-HU")+"): délutáni lefelé irányú nyomás a dealer-delta-bomlásból. Délutáni long csak támasz-reakcióból, sosem felfelé szaladó áron.":"Pozitív: a delta-bomlás felfelé segít."));
+  if (GEX.zg) sor.push("REZSIM: "+(ar>GEX.zg ? "Flip ("+GEX.zg+") felett = ELNYOMÁS. Visszatérés a flip/fal felé." : "Flip alatt = GYORSULÁS. Nagy mozgások, trend-irányban maradj, fade   if (GEX.ch!=null) sor.push("CHARM: "+(GEX.ch<0?"Negatív ("+GEX.ch.toLocaleString("hu-HU")+"): délutáni lefelé irányú nyomás a dealer-delta-bomlásból. Délutáni long csak támasz-reakcióból, sosem felfelé szaladó áron.":"Pozitív: a delta-bomlás felfelé segít."));
   if (GEX.sk!=null) sor.push("SKEW: "+GEX.sk+" – "+(GEX.sk>15?"magas. A piac drágán fizet a védelemért: félelem van, áttörések gyorsak. Stop-loss kötelező.":"mérsékelt/nyugodt védelmi fizetés."));
   if (P["DXY"]) sor.push("DOLLÁR: "+(P["DXY"].valt>0.1?"Erősödik – aranyra nyomás.":"Gyengül – arany-barát háttér."));
-  if (P["VIX"]) sor.push("FÉLELEM: VIX "+P["VIX"].valt.toFixed(1)+"% – "+(P["VIX"].valt>2?"nő, arany-barát":"csökken, semleges.") );
+  if (P["VIX"]) sor.push("FÉLELEM: VIX "+P["VIX"].valt.toFixed(1)+"% – "+(P["VIX"].valt>2?"nő, arany-barát":"csökken, semleges."));
   sor.push("");
-  sor.push("ZÁRÁS: "+(E.jel.startsWith("LONG")?"LONG-mood. A beállítás: támasz-reakcióból vétel, stop a put wall alatt, cél a call wall."
-    : E.jel.startsWith("SHORT")?"SHORT-mood. Fal-elutasításra játszva, vagy a put wall alatti áttörésre.":"Kétoldali tartomány: kis méret, a falakon fade, a flip irány a figyelt váltó."));
+  sor.push("ZÁRÁS: "+(E.jel.startsWith("LONG")?"LONG-mood. Beállítás: támasz-reakcióból vétel, stop a put wall alatt, cél a call wall – de fal ELŐTT zárás (0.3%-a előtt)!"
+    : E.jel.startsWith("SHORT")?"SHORT-mood. Fal-elutasításra játszva, vagy a put wall alatti áttörésre. A gyorsulás-módban szűkebb stop!"
+    : "Kétoldali tartomány: kis méret, a falakon fade, a flip irány a figyelt váltó."));
   return sor.join("\n");
 }
 
+// ── JELZÉS-NAPLÓ (a döntések visszanézhetők!) ──
+function naploz(E, ar){
+  var utolso = JELTORT[0];
+  if (utolso && utolso.jel===E.jel && (Date.now()-utolso.t) < 30*60000) return; // 30 percen belül ugyanaz → nem naplózunk spamet
+  JELTORT.unshift({t:Date.now(), jel:E.jel, pont:E.pont, ar:ar, apont:E.apont});
+  if (JELTORT.length > 15) JELTORT.length = 15;
+  localStorage.setItem("qh_jeltort", JSON.stringify(JELTORT));
+}
+function rajzolJelNaplo(){
+  if (!JELTORT.length){ document.getElementById("jeltort").innerHTML="Még nincs naplózott jelzés."; return; }
+  var html = "";
+  JELTORT.forEach(function(n){
+    var d = new Date(n.t);
+    html += '<div class="jelnap"><span>'+d.toLocaleTimeString("hu-HU")+' – <b class="'+(n.jel.startsWith("LONG")?"fel":n.jel.startsWith("SHORT")?"le":"sem")+'">'+n.jel+'</b> ('+n.pont+') ár: '+n.ar.toFixed(1)+'</span><span class="statusz">erő: '+n.apont+'/10</span></div>';
+  });
+  document.getElementById("jeltort").innerHTML = html;
+}
+
+// ── SEGÉDEK + FŐ CIKLUS ──
 function tabla(id, sorok){
   var html="";
   for (var i=0;i<sorok.length;i++) html+="<tr>"+sorok[i]+"</tr>";
@@ -347,26 +463,46 @@ function el(n){ return n>0?"+":""; }
 
 async function frissit(){
   if (!K.tdk){ document.getElementById("jelzes").textContent="Add meg a TwelveData kulcsot! ⚙️"; return; }
-  var ered=await Promise.all([adatok()]);
-  var P=ered[0];
+  var P = await adatok();
+  var au = P["XAU/USD"];
+  var ar = au && au.ar ? au.ar : null;
 
+  // árfolyam-tábla
   var arak=[];
   for (var kulcs in P){
+    if (kulcs.charAt(0)==="_") continue;
     var v=P[kulcs], c=v.valt>=0?"fel":"le";
     arak.push("<td>"+kulcs+"</td><td class='"+c+"'>"+(v.ar!=null?v.ar.toFixed(2):"-")+"</td><td class='"+c+"'>"+el(v.valt)+v.valt.toFixed(2)+"%</td>");
   }
   tabla("arak", arak);
 
-  var E=agy(P);
-  document.getElementById("jelzes").innerHTML="<span class='"+E.cls+"'>"+E.jel+"</span> <span class='statusz'>pont: "+el(E.pont)+E.pont+"</span>";
-  document.getElementById("velemeny").innerHTML=E.ok.join("<br>");
-  document.getElementById("gexkartya").innerHTML=gexKartyak(P["XAU/USD"]?P["XAU/USD"].ar:null);
-  document.getElementById("charmskew").innerHTML=charmSkew();
-  document.getElementById("atfogo").textContent=atfogo(P,E);
-  document.getElementById("utolso").textContent="· "+new Date().toLocaleTimeString("hu-HU");
+  // sparkline
+  spark(P._spark);
+
+  // AGY
+  var E = agy(P);
+  naploz(E, ar);
+  document.getElementById("jelzes").innerHTML =
+    "<span class='"+E.cls+"'>"+E.jel+"</span>"
+    + "<span class='pontkijelzo p-"+(E.apont>=7?"eros":E.apont>=4?"kozep":"gyenge")+"'>AGY-AUTO: "+E.apont+"/10 "+E.aero+" ("+E.airany+")</span>"
+    + " <span class='statusz'>napi pont: "+el(E.pont)+E.pont+"</span>";
+  document.getElementById("velemeny").innerHTML = E.ok.join("<br>");
+
+  // GEX kártyák + RIASZTÁSOK
+  var gk = gexKartyak(ar);
+  document.getElementById("gexkartya").innerHTML = gk.html;
+  document.getElementById("riasztok").innerHTML =
+    gk.riaszt.length ? gk.riaszt.map(function(r){ return '<div class="riaszt">🚨 '+r+'</div>'; }).join("") : "🟢 Nincs szint-közelségi riasztás.";
+  document.getElementById("charmskew").innerHTML = charmSkew(ar);
+
+  document.getElementById("atfogo").textContent = atfogo(P,E);
+  document.getElementById("utolso").textContent = "· "+new Date().toLocaleTimeString("hu-HU");
+  riportKor();
 }
 
-rajzolInput(); rajzolGexInputs(); rajzolTabla(); frissit(); setInterval(frissit, 120000);
+rajzolInput(); rajzolGexInputs(); rajzolTabla(); rajzolJelNaplo(); frissit(); setInterval(frissit, 120000);
 </script>
 </body>
 </html>
+
+
